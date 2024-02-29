@@ -25,7 +25,7 @@ class GameLearning(object):
         else:
             # check if agent state file already exists, and ask
             # user whether to overwrite if so
-            if os.path.isfile(args.path):
+            if os.path.isfile(args.path) and args.eval_episodes is None:
                 print('An agent is already saved at {}.'.format(args.path))
                 while True:
                     response = input("Are you sure you want to overwrite? [y/n]: ")
@@ -83,6 +83,24 @@ class GameLearning(object):
         # save final agent
         self.agent.save(self.path)
 
+    def evaluate(self, episodes):
+        """ Play against the teacher and report performance """
+        teacher = Teacher()
+        wins = draws = losses = 0
+        # Play specified number of episodes
+        while self.games_played < episodes:
+            game = Game(self.agent, teacher=teacher)
+            game.start(train=False)
+            self.games_played += 1
+            # Record results
+            if game.result == 0:
+                draws += 1
+            elif game.result == -1:
+                losses += 1
+            else:
+                wins += 1
+        print(f'Wins: {wins}  Losses: {losses}  Draws: {draws}')
+
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -101,6 +119,9 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--teacher_episodes", default=None, type=int,
                         help="employ teacher agent who knows the optimal "
                              "strategy and will play for TEACHER_EPISODES games")
+    parser.add_argument("-e", "--eval_episodes", default=None, type=int,
+                        help="evaluate stored model against teacher agent who knows the optimal "
+                             "strategy and will play for EVAL_EPISODES games")
     args = parser.parse_args()
 
     # set default path
@@ -110,8 +131,10 @@ if __name__ == "__main__":
     # initialize game instance
     gl = GameLearning(args)
 
-    # play or teach
-    if args.teacher_episodes is not None:
+    # evaluate, teach, or play
+    if args.eval_episodes is not None:
+        gl.evaluate(args.eval_episodes)
+    elif args.teacher_episodes is not None:
         gl.beginTeaching(args.teacher_episodes)
     else:
         gl.beginPlaying()

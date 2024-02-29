@@ -70,6 +70,14 @@ The agent will continue to learn and its pickle file will be overwritten.
 
 For this use case, the argument `-a` is only used to define a default agent path (if not specified by `-p`); otherwise, the agent type is determined by the contents of the loaded pickle.
 
+#### Evaluate an existing agent against the teacher, without conducting additional training
+To load an existing agent and evaluate against the teacher, use the `-e` flag:
+
+    python play.py -e 100 -p q_agent.pkl            (load agent and evaluate for 100 games against the teacher)
+
+The agent will not continue to learn during evaluation, and its pickle file will not be updated 
+
+For this use case, the argument `-a` is only used to define a default agent path (if not specified by `-p`); otherwise, the agent type is determined by the contents of the loaded pickle.
 
 #### Load a trained agent and view reward history plot
 Finally, to load a stored agent and view a plot of its cumulative reward history, use the script plot_agent_reward.py:

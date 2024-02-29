@@ -8,6 +8,7 @@ class Game:
         self.teacher = teacher
         # initialize the game board
         self.board = [['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]
+        self.result = None
 
     def playerMove(self):
         """
@@ -100,7 +101,7 @@ class Game:
             return 0
         return -1
 
-    def playGame(self, player_first):
+    def playGame(self, player_first, train=True):
         """ 
         Begin the tic-tac-toe game loop. 
 
@@ -109,6 +110,11 @@ class Game:
         player_first : boolean
             Whether or not the player will move first. If False, the
             agent goes first.
+
+        train : boolean
+            Whether this game is in training mode (training 
+            updates to player). If True, the player will be updated
+            with reward. Set to False for evaluation of player
 
         """
         # Initialize the agent's state and action
@@ -140,16 +146,21 @@ class Game:
             # determine new action (epsilon-greedy)
             new_action = self.agent.get_action(new_state)
             # update Q-values
-            self.agent.update(prev_state, new_state, prev_action, new_action, reward)
+            if train:
+                self.agent.update(prev_state, new_state, prev_action, new_action, reward)
             # reset "previous" values
             prev_state = new_state
             prev_action = new_action
             # append reward
 
         # Game over. Perform final update
-        self.agent.update(prev_state, None, prev_action, None, reward)
+        if train:
+            self.agent.update(prev_state, None, prev_action, None, reward)
 
-    def start(self):
+        # Store game result
+        self.result = reward
+
+    def start(self, train=True):
         """
         Function to determine who moves first, and subsequently, start the game.
         If a teacher is employed, first mover is selected at random.
@@ -159,9 +170,9 @@ class Game:
         if self.teacher is not None:
             # During teaching, chose who goes first randomly with equal probability
             if random.random() < 0.5:
-                self.playGame(player_first=False)
+                self.playGame(player_first=False, train=train)
             else:
-                self.playGame(player_first=True)
+                self.playGame(player_first=True, train=train)
         else:
             while True:
                 response = input("Would you like to go first? [y/n]: ")
